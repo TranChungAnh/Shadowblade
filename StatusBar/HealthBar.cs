@@ -7,7 +7,7 @@ using static Cinemachine.DocumentationSortingAttribute;
 
 public class HealthBar : MonoBehaviour
 {
-    private Slider slider;
+    public  Slider slider;
     public TextMeshProUGUI healthCounter;
     public States States;
     private float currentHealth, maxHealth;

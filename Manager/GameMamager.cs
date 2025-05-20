@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using static PlayerInputHander;
 
 public class GameMamager : MonoBehaviour
 {
+    public static GameMamager instance { get; private set; }
     public List<GameObject> enemyPrefabs;
 
     public EntityRespawner playerRespawner;
@@ -14,19 +16,21 @@ public class GameMamager : MonoBehaviour
     private CinemachineVirtualCamera CVC;
     private HealthBar healthBar;
     public TextMeshProUGUI livesCounter;
-    private int lives = 1;
+    public int lives;
 
-    private States states;
+    public States states { get; private set; }
     public int killEnemy = 0;
     public TextMeshProUGUI killCounter;
-    // GameOver
-    [SerializeField]private GameObject gameOver;
-    [SerializeField]private GameObject results;
-    [SerializeField]private Player player;
+
+    [SerializeField] private GameObject gameOver;
+    [SerializeField] private GameObject results;
+    [SerializeField] private Player player;
 
     private TextMeshProUGUI scoreText;
     private TextMeshProUGUI monstersDefeatedText;
     private TextMeshProUGUI survivalTimeText;
+    private GameObject newPlayer;
+    public bool isGameOver;
 
     void Start()
     {
@@ -36,13 +40,20 @@ public class GameMamager : MonoBehaviour
         scoreText = results.transform.Find("Score")?.GetComponent<TextMeshProUGUI>();
         monstersDefeatedText = results.transform.Find("MonstersDefeated")?.GetComponent<TextMeshProUGUI>();
         survivalTimeText = results.transform.Find("SurvivalTime")?.GetComponent<TextMeshProUGUI>();
-
+        isGameOver = false;
     }
 
     void Update()
     {
+        livesCounter.text = "X" + lives.ToString();
+
+        if (lives <= 0 && !isGameOver && !playerRespawner.isRespawningPlayer)
+        {
+            TriggerGameOver();
+            newPlayer.SetActive(false);
+        }
         CheckRespawn();
-        livesCounter.text = "X " + lives.ToString();
+
     }
 
     public void Respawn()
@@ -50,18 +61,17 @@ public class GameMamager : MonoBehaviour
         if (lives <= 0) return;
 
         respawnStartTime = Time.time;
-        //playerRespawner.isRespawningPlayer = true;
         Debug.Log("Player will respawn...");
     }
 
     private void CheckRespawn()
     {
         // Player respawn
-        if (playerRespawner.isRespawningPlayer && Time.time >= respawnStartTime + playerRespawner.respawnTime && lives > 0)
+        if (!isGameOver && playerRespawner.isRespawningPlayer && Time.time >= respawnStartTime + playerRespawner.respawnTime && lives > 0)
         {
             playerRespawner.isRespawningPlayer = false;
 
-            GameObject newPlayer = Instantiate(playerRespawner.playerPrefabs[0], playerRespawner.playerRespawnPoints[0].position, playerRespawner.playerRespawnPoints[0].rotation);
+             newPlayer = Instantiate(playerRespawner.playerPrefabs[0], playerRespawner.playerRespawnPoints[0].position, playerRespawner.playerRespawnPoints[0].rotation);
             newPlayer.name = playerRespawner.playerPrefabs[0].name;
 
             if (CVC != null)
@@ -73,11 +83,11 @@ public class GameMamager : MonoBehaviour
                 states.currentHealth = states.maxHealth;
                 healthBar.States = states;
             }
+
             lives--;
         }
-
         // Enemy respawn
-        else if (playerRespawner.enemiesToRespawn.Count > 0 && Time.time >= respawnStartTime + playerRespawner.respawnTime)
+        else if (!isGameOver && playerRespawner.enemiesToRespawn.Count > 0 && Time.time >= respawnStartTime + playerRespawner.respawnTime)
         {
             var enemyData = playerRespawner.enemiesToRespawn.Dequeue();
 
@@ -91,24 +101,25 @@ public class GameMamager : MonoBehaviour
                 {
                     states.currentHealth = states.maxHealth;
                 }
-                
             }
             else
             {
                 Debug.LogWarning("Enemy data invalid for respawn.");
             }
         }
+    }
 
-        // Game Over
-        else if (lives <= 0 && !playerRespawner.isRespawningPlayer)
-        {
-            gameOver.SetActive(true);
-            scoreText.text = "Score: " + (killEnemy*10).ToString();
-            monstersDefeatedText.text = "Monsters Defeated: " + killEnemy.ToString();
-            float time = Time.time;
-            float survivalTime = time - player.gameStartTime;
-            survivalTimeText.text = "Survival Time: " + FormatTime(survivalTime);
-        }
+    private void TriggerGameOver()
+    {
+        isGameOver = true;
+        Debug.Log("Game Over");
+
+        gameOver.SetActive(true);
+        scoreText.text = "Score: " + (killEnemy * 10).ToString();
+        monstersDefeatedText.text = "Monsters Defeated: " + killEnemy.ToString();
+        float time = Time.time;
+        float survivalTime = time - player.gameStartTime;
+        survivalTimeText.text = "Survival Time: " + FormatTime(survivalTime);
     }
 
     private string FormatTime(float timeInSeconds)
@@ -117,5 +128,4 @@ public class GameMamager : MonoBehaviour
         int seconds = Mathf.FloorToInt(timeInSeconds % 60f);
         return string.Format("{0:00}:{1:00}", minutes, seconds);
     }
-
 }

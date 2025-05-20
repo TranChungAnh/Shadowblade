@@ -3,19 +3,30 @@
 public class Death : CoreComponent
 {
     [SerializeField] private GameObject[] deathParticles;
-  
+
     private ParticleManager ParticleManager =>
         particManager ? particManager : core.GetCoreComponent(ref particManager);
 
     private ParticleManager particManager;
     private States Stats => stats ? stats : core.GetCoreComponent(ref stats);
     private States stats;
+    private GameObject healthBarObject;
+    private HealthBar healthBarGO;
 
     public void Die()
     {
+         healthBarObject = GameObject.Find("HealthBarContainer");
+         healthBarGO = healthBarObject?.GetComponent<HealthBar>();
         foreach (var particle in deathParticles)
         {
             ParticleManager.StartParticles(particle);
+            if (gameObject.CompareTag("Player"))
+            {
+                healthBarGO.slider.value = 0;
+                healthBarGO.healthCounter.text = "0/100";
+            }
+           
+
         }
 
 

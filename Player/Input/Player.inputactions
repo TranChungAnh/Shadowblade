@@ -60,9 +60,9 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "SecondaryAttack",
+                    "name": "MainMenu",
                     "type": "Button",
-                    "id": "f3879df1-b21b-4447-83a3-886e41a15893",
+                    "id": "afddbb3c-da85-4697-b804-065764f707b3",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -248,23 +248,12 @@
                 },
                 {
                     "name": "",
-                    "id": "35d310bf-accc-4230-997c-95a42c78d709",
-                    "path": "<Mouse>/rightButton",
+                    "id": "76f2a39e-24d7-47ae-8d6f-88d881ea01b4",
+                    "path": "<Keyboard>/m",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard",
-                    "action": "SecondaryAttack",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "72f5679f-be9e-490b-95e4-ff8731144a7a",
-                    "path": "<Gamepad>/buttonNorth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "GamePad",
-                    "action": "SecondaryAttack",
+                    "action": "MainMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

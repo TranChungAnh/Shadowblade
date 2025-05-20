@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static Cinemachine.DocumentationSortingAttribute;
-using static UnityEditor.VersionControl.Asset;
 
 public class States : CoreComponent
 {
@@ -73,7 +72,6 @@ public class States : CoreComponent
             GM.playerRespawner.enemiesToRespawn.Enqueue(enemyData);
            
         }
-
         GM.Respawn();
         Debug.Log("Die");
         Destroy(gameObject);

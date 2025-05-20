@@ -36,6 +36,7 @@ public class Player : MonoBehaviour
     [SerializeField]
     private PlayerData playerData;
     public float gameStartTime;
+
     private void Awake()
     {
         //SoundManager.Instance.PlaySound(SoundManager.Instance.BGSound);
@@ -75,6 +76,7 @@ public class Player : MonoBehaviour
     }
     private void Update()
     {
+
         core.LogicUpdate();
         stateMachine.currentState.LogicUpdate();
     }

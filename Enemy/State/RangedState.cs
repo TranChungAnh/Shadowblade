@@ -46,10 +46,17 @@ public class RangedState : AttackState
     public override void TriggerAttack()
     {
         base.TriggerAttack();
+
         projectTitle = GameObject.Instantiate(rangeData.projectile, attackPosition.position, attackPosition.rotation);
+
         projectTitleScrip = projectTitle.GetComponent<projectTitle>();
+        if (projectTitleScrip == null)
+        {
+            Debug.LogError("projectTitle prefab is missing the 'projectTitle' script!");
+            return;
+        }
+
         projectTitleScrip.FireProjectile(rangeData.projecTileSpeed, rangeData.projectTitleDamage, rangeData.projectTitleTraveDistance);
-
-
     }
+
 }

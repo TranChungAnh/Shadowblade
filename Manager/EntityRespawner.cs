@@ -18,6 +18,5 @@ public class EntityRespawner : MonoBehaviour
 
     public bool isRespawningPlayer = false;
 
-    // Queue lưu enemy chờ respawn
     public Queue<EnemyRespawnData> enemiesToRespawn = new Queue<EnemyRespawnData>();
 }

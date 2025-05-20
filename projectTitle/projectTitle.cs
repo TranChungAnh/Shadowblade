@@ -1,11 +1,9 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class projectTitle : MonoBehaviour
 {
-    //private AttackDetails attackDetails;
-
     private float speed;
     private float travelDistance;
     private float xStartPos;
@@ -18,10 +16,7 @@ public class projectTitle : MonoBehaviour
     private Rigidbody2D rb;
 
     private bool isGravityOn;
-    private bool hasHitGround;
 
-    [SerializeField]
-    private LayerMask whatIsGround;
     [SerializeField]
     private LayerMask whatIsPlayer;
     [SerializeField]
@@ -37,66 +32,60 @@ public class projectTitle : MonoBehaviour
         isGravityOn = false;
 
         xStartPos = transform.position.x;
-        //attackDetails = new AttackDetails();
+
+        Destroy(gameObject, 3f);
     }
 
     private void Update()
     {
-        if (!hasHitGround)
+        if (isGravityOn)
         {
-            //attackDetails.position = transform.position;
-
-            if (isGravityOn)
-            {
-                float angle = Mathf.Atan2(rb.velocity.y, rb.velocity.x) * Mathf.Rad2Deg;
-                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-            }
+            float angle = Mathf.Atan2(rb.velocity.y, rb.velocity.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
     }
 
     private void FixedUpdate()
     {
-        if (!hasHitGround)
+        Collider2D[] damageHit = Physics2D.OverlapCircleAll(damagePosition.position, damageRadius, whatIsPlayer);
+        if (damageHit.Length > 0)
         {
-            Collider2D damageHit = Physics2D.OverlapCircle(damagePosition.position, damageRadius, whatIsPlayer);
-            Collider2D groundHit = Physics2D.OverlapCircle(damagePosition.position, damageRadius, whatIsGround);
-            if (damageHit)
+            foreach (Collider2D collider in damageHit)
             {
-                //damageHit.transform.SendMessage("Damage", attackDetails);
-                Destroy(gameObject);
-            }
+                IDamageable damageable = collider.GetComponent<IDamageable>();
 
-            if (groundHit)
-            {
-                hasHitGround = true;
-                rb.gravityScale = 0f;
-                rb.velocity = Vector2.zero;
-                StartCoroutine(groundhit());
-
-            }
-
-
-            if (Mathf.Abs(xStartPos - transform.position.x) >= travelDistance && !isGravityOn)
-            {
-                isGravityOn = true;
-                rb.gravityScale = gravity;
-
+                if (damageable != null)
+                {
+                    damageable.Damage(10f);
+                    Debug.Log("Damage dealt to: " + collider.name);
+                    if (States.Instance != null)
+                    {
+                        float currentHealth = States.Instance.currentHealth;
+                        if (currentHealth > 0)
+                        {
+                            Debug.Log("Current Health: 2222222 " + currentHealth);
+                            States.Instance.setHealth(currentHealth - 10f);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("States.Instance is null.");
+                    }
+                }
             }
         }
-    }
-    IEnumerator groundhit()
-    {
-        yield return new WaitForSeconds(0.5f);
-        Destroy(gameObject);
 
-
+        if (Mathf.Abs(xStartPos - transform.position.x) >= travelDistance && !isGravityOn)
+        {
+            isGravityOn = true;
+            rb.gravityScale = gravity;
+        }
     }
 
     public void FireProjectile(float speed, float travelDistance, float damage)
     {
         this.speed = speed;
         this.travelDistance = travelDistance;
-        //attackDetails.damageAmount = damage;
     }
 
     private void OnDrawGizmos()

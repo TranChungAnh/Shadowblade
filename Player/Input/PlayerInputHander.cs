@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 
 public class PlayerInputHander : MonoBehaviour
 {
+    [SerializeField] private GameObject mainMenu;
+
     private PlayerInput playerInput;
     private Camera cam;
     public Vector2 rawMovementInput { get; private set; }
@@ -31,6 +33,15 @@ public class PlayerInputHander : MonoBehaviour
         int count = Enum.GetValues(typeof(CombatInputs)).Length;
         attackInput = new bool[count];
         cam = Camera.main;
+        if (mainMenu == null)
+        {
+            Transform found = GameObject.Find("BG")?.transform.Find("MainMenu");
+            if (found != null)
+            {
+                mainMenu = found.gameObject;
+            }
+        }
+
     }
     private void Update()
     {
@@ -69,17 +80,17 @@ public class PlayerInputHander : MonoBehaviour
             attackInput[(int)CombatInputs.primary] = false;
         }
     }
-    public void OnsecondaryAttack(InputAction.CallbackContext context)
-    {
-        if (context.started) 
-        {
-            attackInput[(int)CombatInputs.secondary] = true;
-        }
-        else if (context.canceled) 
-        {
-            attackInput[(int)CombatInputs.secondary] = false;
-        }
-    }
+    //public void OnsecondaryAttack(InputAction.CallbackContext context)
+    //{
+    //    if (context.started) 
+    //    {
+    //        attackInput[(int)CombatInputs.secondary] = true;
+    //    }
+    //    else if (context.canceled) 
+    //    {
+    //        attackInput[(int)CombatInputs.secondary] = false;
+    //    }
+    //}
     public void OnGrapInput(InputAction.CallbackContext context)
     {
         if (context.started)
@@ -117,6 +128,23 @@ public class PlayerInputHander : MonoBehaviour
 
         dashDirectionInput = Vector2Int.RoundToInt(rawDashDirectionInput.normalized);
     }
+    public void OnMainMenuObject(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            if (mainMenu != null)
+            {
+                bool isActive = mainMenu.activeSelf;
+                mainMenu.SetActive(!isActive);
+            }
+            else
+            {
+                Debug.LogWarning("MainMenu not found to toggle.");
+            }
+        }
+    }
+
+
 
     public void UseJumpInput() => JumpInput = false;
     public void UseDashInput() => dashInput = false;
