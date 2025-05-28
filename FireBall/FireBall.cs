@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class projectTitle : MonoBehaviour
+public class FireBall : MonoBehaviour
 {
     private float speed;
     private float travelDistance;
@@ -14,9 +14,8 @@ public class projectTitle : MonoBehaviour
     private float damageRadius;
 
     private Rigidbody2D rb;
+
     private bool isGravityOn;
-    private bool isScheduledToDestroy = false;
-    public bool isFireball=false;
 
     [SerializeField]
     private LayerMask whatIsPlayer;
@@ -48,8 +47,6 @@ public class projectTitle : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (isScheduledToDestroy) return;
-
         Collider2D[] damageHit = Physics2D.OverlapCircleAll(damagePosition.position, damageRadius, whatIsPlayer);
         if (damageHit.Length > 0)
         {
@@ -61,7 +58,6 @@ public class projectTitle : MonoBehaviour
                 {
                     damageable.Damage(10f);
                     Debug.Log("Damage dealt to: " + collider.name);
-
                     if (States.Instance != null)
                     {
                         float currentHealth = States.Instance.currentHealth;
@@ -75,15 +71,11 @@ public class projectTitle : MonoBehaviour
                     {
                         Debug.LogError("States.Instance is null.");
                     }
-
-                    StartCoroutine(DelayedDestroy(0.1f));
-                    isScheduledToDestroy = true;
-                    break; 
                 }
             }
         }
 
-        if (Mathf.Abs(xStartPos - transform.position.x) >= travelDistance && !isGravityOn && !isFireball)
+        if (Mathf.Abs(xStartPos - transform.position.x) >= travelDistance && !isGravityOn)
         {
             isGravityOn = true;
             rb.gravityScale = gravity;
@@ -95,37 +87,24 @@ public class projectTitle : MonoBehaviour
         this.speed = speed;
         this.travelDistance = travelDistance;
     }
-
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (isScheduledToDestroy) return;
-
-        if (collision.gameObject.CompareTag("Grounded"))
+        // Kiểm tra nếu chạm vào layer "Ground"
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Grounded"))
         {
+            // Dừng lại hoàn toàn
             rb.velocity = Vector2.zero;
             rb.isKinematic = true;
             rb.gravityScale = 0f;
 
+            // Nếu muốn xoay về góc mặc định
             transform.rotation = Quaternion.identity;
-
-            StartCoroutine(DelayedDestroy(0.2f));
-            isScheduledToDestroy = true;
         }
     }
 
-
-    private IEnumerator DelayedDestroy(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        Destroy(gameObject);
-    }
 
     private void OnDrawGizmos()
     {
-        if (damagePosition != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(damagePosition.position, damageRadius);
-        }
+        Gizmos.DrawWireSphere(damagePosition.position, damageRadius);
     }
 }

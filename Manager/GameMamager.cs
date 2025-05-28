@@ -16,10 +16,11 @@ public class GameMamager : MonoBehaviour
     private CinemachineVirtualCamera CVC;
     private HealthBar healthBar;
     public TextMeshProUGUI livesCounter;
-    public int lives;
+
+    [SerializeField] public GameDataSO gameData;
 
     public States states { get; private set; }
-    public int killEnemy = 0;
+
     public TextMeshProUGUI killCounter;
 
     [SerializeField] private GameObject gameOver;
@@ -31,34 +32,48 @@ public class GameMamager : MonoBehaviour
     private TextMeshProUGUI survivalTimeText;
     private GameObject newPlayer;
     public bool isGameOver;
+    public int enemyCount;
+    public bool isOpenTeleport = false;
 
     void Start()
     {
+        instance = this;
+
         CVC = GameObject.Find("PlayerCamera")?.GetComponent<CinemachineVirtualCamera>();
         healthBar = GameObject.Find("HealthBarContainer")?.GetComponent<HealthBar>();
 
         scoreText = results.transform.Find("Score")?.GetComponent<TextMeshProUGUI>();
         monstersDefeatedText = results.transform.Find("MonstersDefeated")?.GetComponent<TextMeshProUGUI>();
         survivalTimeText = results.transform.Find("SurvivalTime")?.GetComponent<TextMeshProUGUI>();
+        enemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+        Debug.Log("Số lượng enemy: " + enemyCount);
+
         isGameOver = false;
     }
 
     void Update()
     {
-        livesCounter.text = "X" + lives.ToString();
+        livesCounter.text = "X" + gameData.lives.ToString();
+        killCounter.text = gameData.killEnemy.ToString();
 
-        if (lives <= 0 && !isGameOver && !playerRespawner.isRespawningPlayer)
+        if (gameData.lives <= 0 && !isGameOver && !playerRespawner.isRespawningPlayer)
         {
             TriggerGameOver();
-            newPlayer.SetActive(false);
+            if (newPlayer != null)
+                newPlayer.SetActive(false);
         }
+
         CheckRespawn();
 
+        if (enemyCount <= 0)
+        {
+            isOpenTeleport = true;
+        }
     }
 
     public void Respawn()
     {
-        if (lives <= 0) return;
+        if (gameData.lives <= 0) return;
 
         respawnStartTime = Time.time;
         Debug.Log("Player will respawn...");
@@ -67,11 +82,11 @@ public class GameMamager : MonoBehaviour
     private void CheckRespawn()
     {
         // Player respawn
-        if (!isGameOver && playerRespawner.isRespawningPlayer && Time.time >= respawnStartTime + playerRespawner.respawnTime && lives > 0)
+        if (!isGameOver && playerRespawner.isRespawningPlayer && Time.time >= respawnStartTime + playerRespawner.respawnTime && gameData.lives > 0)
         {
             playerRespawner.isRespawningPlayer = false;
 
-             newPlayer = Instantiate(playerRespawner.playerPrefabs[0], playerRespawner.playerRespawnPoints[0].position, playerRespawner.playerRespawnPoints[0].rotation);
+            newPlayer = Instantiate(playerRespawner.playerPrefabs[0], playerRespawner.playerRespawnPoints[0].position, playerRespawner.playerRespawnPoints[0].rotation);
             newPlayer.name = playerRespawner.playerPrefabs[0].name;
 
             if (CVC != null)
@@ -84,29 +99,30 @@ public class GameMamager : MonoBehaviour
                 healthBar.States = states;
             }
 
-            lives--;
+            gameData.lives--;
         }
+
         // Enemy respawn
-        else if (!isGameOver && playerRespawner.enemiesToRespawn.Count > 0 && Time.time >= respawnStartTime + playerRespawner.respawnTime)
-        {
-            var enemyData = playerRespawner.enemiesToRespawn.Dequeue();
+        //else if (!isGameOver && playerRespawner.enemiesToRespawn.Count > 0 && Time.time >= respawnStartTime + playerRespawner.respawnTime)
+        //{
+        //    var enemyData = playerRespawner.enemiesToRespawn.Dequeue();
 
-            if (enemyData.prefab != null && enemyData.respawnPoint != null)
-            {
-                GameObject newEnemy = Instantiate(enemyData.prefab, enemyData.respawnPoint.position, Quaternion.identity);
-                newEnemy.name = enemyData.prefab.name;
+        //    if (enemyData.prefab != null && enemyData.respawnPoint != null)
+        //    {
+        //        GameObject newEnemy = Instantiate(enemyData.prefab, enemyData.respawnPoint.position, Quaternion.identity);
+        //        newEnemy.name = enemyData.prefab.name;
 
-                states = newEnemy.transform.Find("Core/States")?.GetComponent<States>();
-                if (states != null)
-                {
-                    states.currentHealth = states.maxHealth;
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Enemy data invalid for respawn.");
-            }
-        }
+        //        states = newEnemy.transform.Find("Core/States")?.GetComponent<States>();
+        //        if (states != null)
+        //        {
+        //            states.currentHealth = states.maxHealth;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Debug.LogWarning("Enemy data invalid for respawn.");
+        //    }
+        //}
     }
 
     private void TriggerGameOver()
@@ -115,8 +131,9 @@ public class GameMamager : MonoBehaviour
         Debug.Log("Game Over");
 
         gameOver.SetActive(true);
-        scoreText.text = "Score: " + (killEnemy * 10).ToString();
-        monstersDefeatedText.text = "Monsters Defeated: " + killEnemy.ToString();
+        scoreText.text = "Score: " + (gameData.killEnemy * 10).ToString();
+        monstersDefeatedText.text = "Monsters Defeated: " + gameData.killEnemy.ToString();
+
         float time = Time.time;
         float survivalTime = time - player.gameStartTime;
         survivalTimeText.text = "Survival Time: " + FormatTime(survivalTime);
@@ -127,5 +144,11 @@ public class GameMamager : MonoBehaviour
         int minutes = Mathf.FloorToInt(timeInSeconds / 60f);
         int seconds = Mathf.FloorToInt(timeInSeconds % 60f);
         return string.Format("{0:00}:{1:00}", minutes, seconds);
+    }
+
+    public void EnemyKilled()
+    {
+        gameData.killEnemy += 1;
+        enemyCount -= 3;
     }
 }

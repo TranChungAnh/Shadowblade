@@ -67,8 +67,8 @@ public class States : CoreComponent
                 prefab = GM.enemyPrefabs.Find(p => p.name == enemyBaseName),
                 respawnPoint = tempRespawnPoint
             };
-            GM.killEnemy++;
-            GM.killCounter.text = "X " + GM.killEnemy.ToString();
+            GM.EnemyKilled();
+            GM.killCounter.text = "X " + GM.gameData.killEnemy.ToString();
             GM.playerRespawner.enemiesToRespawn.Enqueue(enemyData);
            
         }

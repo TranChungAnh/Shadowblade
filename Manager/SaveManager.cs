@@ -36,16 +36,19 @@ public class SaveManager : MonoBehaviour
     }
     private PlayerSaves GetPlayerSaves()
     {
+        if (gameManager == null || gameManager.states == null)
+        {
+            Debug.LogError("GameManager hoặc States chưa được gán!");
+            return new PlayerSaves(100, Vector3.zero, 0, 3); // fallback default
+        }
+
         float playerStates = gameManager.states.currentHealth;
         Vector3 playerPos = playerRespawner.transform.position;
-        int killCount = gameManager.killEnemy;
-        int lives = gameManager.lives;
-        Debug.Log("Lives của :" + lives);
+        int killCount = gameManager.gameData.killEnemy;
+        int lives = gameManager.gameData.lives;
 
         return new PlayerSaves(playerStates, playerPos, killCount, lives);
-
     }
-
     public void SavingTypeSwitch(AllGameData gameData, int slotNumber)
     {
         if (isSavingToJson)
@@ -78,22 +81,22 @@ public class SaveManager : MonoBehaviour
         // Player Data 
         SetPlayerData(LoadingTypeSwitch(slotNumber).playerSaves);
 
-    
+
     }
     private void SetPlayerData(PlayerSaves playerSaves)
     {
         gameManager.states.currentHealth = playerSaves.playerStates;
         playerRespawner.transform.position = playerSaves.playerPossition;
-        gameManager.killEnemy = playerSaves.killCount;
-        gameManager.lives = playerSaves.lives;
+        gameManager.gameData.killEnemy = playerSaves.killCount;
+        gameManager.gameData.lives = playerSaves.lives;
         Debug.Log("Lives của 1 :" + playerSaves.lives);
 
     }
     #region To binary section( lưu băng nhị phân)
     public void SaveGameDataToBinaryFile(AllGameData gameData, int slotNumber)
     {
-        BinaryFormatter formatter=new BinaryFormatter();
-        FileStream stream=new FileStream(binarypath + fileName +slotNumber+ ".bin", FileMode.Create);
+        BinaryFormatter formatter = new BinaryFormatter();
+        FileStream stream = new FileStream(binarypath + fileName + slotNumber + ".bin", FileMode.Create);
         formatter.Serialize(stream, gameData);
         stream.Close();
         print("Data saved to" + binarypath + fileName + slotNumber + ".bin");
@@ -101,19 +104,19 @@ public class SaveManager : MonoBehaviour
     // tải dữ liệu bằng binary 
     public AllGameData LoadGameDataFromBinaryFile(int slotNumber)
     {
-        if(File.Exists(binarypath + fileName +slotNumber + ".bin"))
+        if (File.Exists(binarypath + fileName + slotNumber + ".bin"))
         {
 
-        BinaryFormatter formatter = new BinaryFormatter();
-        FileStream stream = new FileStream(binarypath + fileName + slotNumber + ".bin", FileMode.Open);
-        AllGameData gameData = formatter.Deserialize(stream) as AllGameData;
-        stream.Close();
-        print("Data loaded from" + binarypath + fileName + slotNumber + ".bin");
-        return gameData;
+            BinaryFormatter formatter = new BinaryFormatter();
+            FileStream stream = new FileStream(binarypath + fileName + slotNumber + ".bin", FileMode.Open);
+            AllGameData gameData = formatter.Deserialize(stream) as AllGameData;
+            stream.Close();
+            print("Data loaded from" + binarypath + fileName + slotNumber + ".bin");
+            return gameData;
         }
         else
         {
-        return null;
+            return null;
         }
     }
 
@@ -146,10 +149,10 @@ public class SaveManager : MonoBehaviour
     // tải dữ liệu Json
     public AllGameData LoadGameDataFromJsonFile(int slotNumber)
     {
-        using (StreamReader reader=new StreamReader(jsonPathProject + fileName + ".json"))
+        using (StreamReader reader = new StreamReader(jsonPathProject + fileName + ".json"))
         {
             string json = reader.ReadToEnd();
-            string decrypted=EncryptionDecryption(json);
+            string decrypted = EncryptionDecryption(json);
             AllGameData gameData = JsonUtility.FromJson<AllGameData>(decrypted);
             return gameData;
         }
@@ -159,7 +162,7 @@ public class SaveManager : MonoBehaviour
     public void StartLoadedGame(int slotNumber)
     {
         isLoading = true;
-        SceneManager.LoadScene("Main");
+        SceneManager.LoadScene("Part2");
         StartCoroutine(DeplayedLoading(slotNumber));
     }
 

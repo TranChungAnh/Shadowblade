@@ -8,7 +8,7 @@ public class Movement : CoreComponent
     public bool canSetVelocity;
     public Vector2 CurrentVelocity { get; private set;}
     private Vector2 workspace;
-    public int facingDirection { get; private set; }
+    public int facingDirection;
 
     protected override void Awake()
     {

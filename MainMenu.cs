@@ -7,14 +7,16 @@ using UnityEngine.UI;
 public class MainMenu : MonoBehaviour
 {
     public Button LoadGameBTN;
-
+    public GameDataSO gameData;
     private void Start()
     {
 
     }
     public void NewGame()
     {
-        SceneManager.LoadScene("Main");
+        SceneManager.LoadScene("Part1");
+        gameData.killEnemy = 0;
+        gameData.lives = 3;
     }
     public void ExitGame()
     {
